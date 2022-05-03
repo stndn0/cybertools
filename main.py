@@ -24,6 +24,9 @@ cmd_unbundle = "unbundle -p "
 loconame_panam_stand = "wa_panam_unarmed_locomotion_relaxed.anims"
 loconame_genfem_crouch = "wa_gang_unarmed_locomotion_stealth.anims"
 
+prefix_panam_folder_stand = "0_namPOSE_S_"
+prefix_panam_folder_crouch = "0_namPOSE_C_"
+
 
 def unbundler():
     wkit_command = dir_wkitCLI + cmd_unbundle + '"' + \
@@ -53,11 +56,19 @@ def packer():
         except:
             print("Packing Error: WolvenKit failed to pack " + folder)
 
-    # Copy archives to output_packed
+    # Create folders within output_packed that will store the copied archives
+    os.makedirs(dir_output_packed + "\AMM_STAND")
+    os.makedirs(dir_output_packed + "\AMM_CROUCH")
+
+    ## Copy archives to output_packed
     archives = glob.glob(dir_tempfiles + "/*.archive")
     try:
         for archive_path in archives:
-            shutil.copy(archive_path, dir_output_packed)
+            # Organization: If the archive is a crouch locomotion then put it in the crouch folder
+            if "\\" + prefix_panam_folder_crouch in archive_path:
+                shutil.copy(archive_path, dir_output_packed + "\AMM_CROUCH")
+            else:
+                shutil.copy(archive_path, dir_output_packed + "\AMM_STAND")
     except:
         print("Packing Error: Error during transfer of files")
 
@@ -84,12 +95,6 @@ def npc_folder_builder(panam_folder):
 
 
 def anim_copy(src_path, panam_folder, target_locomotion_file, source_locomotion_file):
-    # # Copy anim to Panam folder and rename
-    # dst_path = panam_folder + "\\base\\animations\\npc\\main_characters\\panam\\locomotion"
-    # print("\n")
-    # print(src_path)
-    # print(dst_path)
-
     try:
         dst_path = panam_folder
         shutil.copy(src_path, dst_path)
@@ -102,7 +107,7 @@ def anim_copy(src_path, panam_folder, target_locomotion_file, source_locomotion_
 
 
 def locomotion_convertor():
-    global total_conversions
+    global total_conversions, prefix_panam_folder_stand, prefix_panam_folder_crouch
     for folder in os.listdir(dir_output_unbundled):
         path_to_anim = ''
         source_locomotion_file = ''
@@ -116,8 +121,8 @@ def locomotion_convertor():
             "\\base\\animations\\npc\\generic_characters\\female_average\\locomotion\\generic_average_female_locomotion.anims"
 
         # Build Panam folders
-        panam_folder_stand = os.getcwd() + "\\tempfiles\\" + "0_namPOSE_S_" + folder
-        panam_folder_crouch = os.getcwd() + "\\tempfiles\\" + "0_namPOSE_C_" + folder
+        panam_folder_stand = os.getcwd() + "\\tempfiles\\" + prefix_panam_folder_stand + folder + "_WOLV"
+        panam_folder_crouch = os.getcwd() + "\\tempfiles\\" + prefix_panam_folder_crouch + folder + "_WOLV"
         npc_folder_builder(panam_folder_stand)
         npc_folder_builder(panam_folder_crouch)
 
