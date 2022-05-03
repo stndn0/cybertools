@@ -19,58 +19,18 @@ loconame_genfem_crouch = "wa_gang_unarmed_locomotion_stealth.anims"
 
 
 def unbundler():
-    wkit_command = dir_wkitCLI + cmd_unbundle + '"' + dir_input_packed + '" -o ' + '"' + dir_output_unbundled + '"'
+    wkit_command = dir_wkitCLI + cmd_unbundle + '"' + \
+        dir_input_packed + '" -o ' + '"' + dir_output_unbundled + '"'
     print(wkit_command)
 
     try:
-        p = subprocess.Popen(["powershell.exe", wkit_command], stdout=sys.stdout)
+        p = subprocess.Popen(
+            ["powershell.exe", wkit_command], stdout=sys.stdout)
         p.communicate()
         print("Unbundle completed successfully.")
     except:
         print("Error during unbundle")
         return
-    
-
-
-
-
-# def unbundler():
-#     # We're only interested in files ending with .archive
-#     archives = glob.glob(dir_input_packed + "/*.archive")
-
-#     if not archives:
-#         print("Error: There were no archives detected in " + dir_input_packed)
-#         return
-
-#     try:
-#         for archive_path in archives:
-#             archive_name = os.path.basename(archive_path)
-#             unbundle_path = dir_wkitCLI + cmd_unbundle + '"' + archive_path + '"'
-
-#             try:
-#                 p = subprocess.Popen(
-#                     ["powershell.exe", unbundle_path], stdout=sys.stdout)
-#                 p.communicate()
-#             except:
-#                 print("Error: WolvenKit failed to unbundle " + archive_name)
-
-#             # Copy to other directory
-#             try:
-#                 src_path = archive_path[:-8]    # omit '.archive' from string
-#                 dst_path = os.getcwd() + "\output_unbundled\\" + \
-#                     archive_name[:-8]
-
-#                 # Copy to directory
-#                 shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
-#                 # Delete from current directory
-#                 shutil.rmtree(src_path)
-
-#             except:
-#                 traceback.print_exc()
-#                 print("Error during shutil file transfer operation")
-#     except:
-#         print("Error occured during unbundle.")
-#     print("Task completed.")
 
 
 def packer():
@@ -81,10 +41,28 @@ def packer():
         print(wkitCommand)
 
         try:
-            p = subprocess.Popen(["powershell.exe", wkitCommand], stdout=sys.stdout)
+            p = subprocess.Popen(
+                ["powershell.exe", wkitCommand], stdout=sys.stdout)
             p.communicate()
         except:
             print("Packing Error: WolvenKit failed to pack " + folder)
+
+    # Copy archives to output_packed
+    archives = glob.glob(dir_tempfiles + "/*.archive")
+    try:
+        for archive_path in archives:
+            shutil.copy(archive_path, dir_output_packed)
+    except:
+        print("Packing Error: Error during transfer of files")
+
+
+    # Delete archives from tempfiles
+    archives = glob.glob(dir_tempfiles + "/*.archive")
+    try:
+        for archive_path in archives:
+            os.remove(archive_path)
+    except:
+        print("Packing Error: Error during deletion of tempfiles content")
 
 
 def npc_folder_builder(panam_folder):
@@ -122,16 +100,36 @@ def locomotion_convertor():
         npc_folder_builder(panam_folder_stand)
         npc_folder_builder(panam_folder_crouch)
 
-
         # Copy anim to Panam folders and rename
         loc_path_stand = "\\base\\animations\\npc\\main_characters\\panam\\locomotion"
         loc_path_crouch = "\\base\\animations\\npc\\gameplay\\woman_average\\gang\\unarmed"
-        anim_copy(path_to_anim, panam_folder_stand + loc_path_stand, loconame_panam_stand)
-        anim_copy(path_to_anim, panam_folder_crouch + loc_path_crouch, loconame_genfem_crouch)
+        anim_copy(path_to_anim, panam_folder_stand +
+                  loc_path_stand, loconame_panam_stand)
+        anim_copy(path_to_anim, panam_folder_crouch +
+                  loc_path_crouch, loconame_genfem_crouch)
+
+# Delete contents of output_unbundle and tempfiles. Optionally delete output_packed as well.
+def cleanup(delete_output_packed=False):
+    # Delete tempfile
+    shutil.rmtree(dir_tempfiles, ignore_errors=True)
+    # Make new blank tempfile folder
+    if not os.path.isdir(dir_tempfiles):
+        os.makedirs(dir_tempfiles)
+
+    # Delete output_unbundled
+    shutil.rmtree(dir_output_unbundled, ignore_errors=True)
+    # Make new blank output_unbundled folder
+    if not os.path.isdir(dir_output_unbundled):
+        os.makedirs(dir_output_unbundled)
 
 
-
-
+    # Delete contents of output_packed
+    if delete_output_packed:
+        shutil.rmtree(dir_output_packed, ignore_errors=True)
+        # Make new blank output_unbundled folder
+        if not os.path.isdir(dir_output_packed):
+            os.makedirs(dir_output_packed)
+    print("Cleanup complete")
 
 # Main
 print("Launching Cybertools by @wolv2077")
@@ -139,4 +137,9 @@ print("Launching Cybertools by @wolv2077")
 unbundler()
 locomotion_convertor()
 packer()
-print("End of program execution.")
+
+# cleanup(True)
+
+
+
+print("End of program execution. See output_packed for final archives.")
