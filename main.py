@@ -18,47 +18,59 @@ loconame_panam_stand = "wa_panam_unarmed_locomotion_relaxed.anims"
 loconame_genfem_crouch = "wa_gang_unarmed_locomotion_stealth.anims"
 
 
-# def unbundler():
+def unbundler():
+    wkit_command = dir_wkitCLI + cmd_unbundle + '"' + dir_input_packed + '" -o ' + '"' + dir_output_unbundled + '"'
+    print(wkit_command)
+
+    try:
+        p = subprocess.Popen(["powershell.exe", wkit_command], stdout=sys.stdout)
+        p.communicate()
+        print("Unbundle completed successfully.")
+    except:
+        print("Error during unbundle")
+        return
     
 
 
-def unbundler():
-    # We're only interested in files ending with .archive
-    archives = glob.glob(dir_input_packed + "/*.archive")
 
-    if not archives:
-        print("Error: There were no archives detected in " + dir_input_packed)
-        return
 
-    try:
-        for archive_path in archives:
-            archive_name = os.path.basename(archive_path)
-            unbundle_path = dir_wkitCLI + cmd_unbundle + '"' + archive_path + '"'
+# def unbundler():
+#     # We're only interested in files ending with .archive
+#     archives = glob.glob(dir_input_packed + "/*.archive")
 
-            try:
-                p = subprocess.Popen(
-                    ["powershell.exe", unbundle_path], stdout=sys.stdout)
-                p.communicate()
-            except:
-                print("Error: WolvenKit failed to unbundle " + archive_name)
+#     if not archives:
+#         print("Error: There were no archives detected in " + dir_input_packed)
+#         return
 
-            # Copy to other directory
-            try:
-                src_path = archive_path[:-8]    # omit '.archive' from string
-                dst_path = os.getcwd() + "\output_unbundled\\" + \
-                    archive_name[:-8]
+#     try:
+#         for archive_path in archives:
+#             archive_name = os.path.basename(archive_path)
+#             unbundle_path = dir_wkitCLI + cmd_unbundle + '"' + archive_path + '"'
 
-                # Copy to directory
-                shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
-                # Delete from current directory
-                shutil.rmtree(src_path)
+#             try:
+#                 p = subprocess.Popen(
+#                     ["powershell.exe", unbundle_path], stdout=sys.stdout)
+#                 p.communicate()
+#             except:
+#                 print("Error: WolvenKit failed to unbundle " + archive_name)
 
-            except:
-                traceback.print_exc()
-                print("Error during shutil file transfer operation")
-    except:
-        print("Error occured during unbundle.")
-    print("Task completed.")
+#             # Copy to other directory
+#             try:
+#                 src_path = archive_path[:-8]    # omit '.archive' from string
+#                 dst_path = os.getcwd() + "\output_unbundled\\" + \
+#                     archive_name[:-8]
+
+#                 # Copy to directory
+#                 shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+#                 # Delete from current directory
+#                 shutil.rmtree(src_path)
+
+#             except:
+#                 traceback.print_exc()
+#                 print("Error during shutil file transfer operation")
+#     except:
+#         print("Error occured during unbundle.")
+#     print("Task completed.")
 
 
 def packer():
@@ -127,3 +139,4 @@ print("Launching Cybertools by @wolv2077")
 unbundler()
 locomotion_convertor()
 packer()
+print("End of program execution.")
