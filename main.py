@@ -11,7 +11,7 @@ total_conversions = 0
 start_time = time.time()
 
 # Important Variables
-dir_wkitCLI = os.getcwd() + "\\wkitCLI\\WolvenKit.CLI.exe "   
+dir_wkitCLI = os.getcwd() + "\\wkitCLI\\WolvenKit.CLI.exe "
 # dir_wkitCLI = os.getcwd() + "\\cp77tools\\CP77Tools.exe "     # Backup - slower but most reliable
 dir_input_packed = os.getcwd() + "\input_packed"
 dir_output_packed = os.getcwd() + "\output_packed"
@@ -83,14 +83,18 @@ def npc_folder_builder(panam_folder):
         print("Locomotion Extraction Error when building NPC folder")
 
 
-def anim_copy(src_path, panam_folder, locomotion_type):
-    # Copy anim to Panam folder and rename
+def anim_copy(src_path, panam_folder, target_locomotion_file, source_locomotion_file):
+    # # Copy anim to Panam folder and rename
+    # dst_path = panam_folder + "\\base\\animations\\npc\\main_characters\\panam\\locomotion"
+    # print("\n")
+    # print(src_path)
+    # print(dst_path)
+
     try:
         dst_path = panam_folder
-        # dst_path = panam_folder + "\\base\\animations\\npc\\main_characters\\panam\\locomotion"
         shutil.copy(src_path, dst_path)
-        os.rename(dst_path + "\\ui_female.anims",
-                  dst_path + "\\" + locomotion_type)
+        os.rename(dst_path + source_locomotion_file,
+                  dst_path + "\\" + target_locomotion_file)
         print("Successfully converted locomotion to Panam locomotion!")
     except:
         traceback.print_exc()
@@ -100,9 +104,16 @@ def anim_copy(src_path, panam_folder, locomotion_type):
 def locomotion_convertor():
     global total_conversions
     for folder in os.listdir(dir_output_unbundled):
+        path_to_anim = ''
+        source_locomotion_file = ''
+        anim_pm = "\\ui_female.anims"
+        anim_genfem = "\\generic_average_female_locomotion.anims"
+
         # Extract locomotion
-        path_to_anim = dir_output_unbundled + "\\" + folder + \
+        path_to_PM_anim = dir_output_unbundled + "\\" + folder + \
             "\\base\\animations\\ui\\female\\ui_female.anims"
+        path_to_genfem_anim = dir_output_unbundled + "\\" + folder + \
+            "\\base\\animations\\npc\\generic_characters\\female_average\\locomotion\\generic_average_female_locomotion.anims"
 
         # Build Panam folders
         panam_folder_stand = os.getcwd() + "\\tempfiles\\" + "0_namPOSE_S_" + folder
@@ -110,13 +121,26 @@ def locomotion_convertor():
         npc_folder_builder(panam_folder_stand)
         npc_folder_builder(panam_folder_crouch)
 
-        # Copy anim to Panam folders and rename
+        # Destination paths where we'll store the locomotions
         loc_path_stand = "\\base\\animations\\npc\\main_characters\\panam\\locomotion"
         loc_path_crouch = "\\base\\animations\\npc\\gameplay\\woman_average\\gang\\unarmed"
+
+        # Case: input archive is a photomode animation
+        if os.path.isfile(path_to_PM_anim):
+            path_to_anim = path_to_PM_anim
+            source_locomotion_file = anim_pm
+            print("Converting PM Animation...")
+        # Case: input archive is a genfem animation
+        elif os.path.isfile(path_to_genfem_anim):
+            path_to_anim = path_to_genfem_anim
+            source_locomotion_file = anim_genfem
+            print("Converting GENFEM animation...")
+
+        # Copy anim to Panam folders and rename
         anim_copy(path_to_anim, panam_folder_stand +
-                  loc_path_stand, loconame_panam_stand)
+                  loc_path_stand, loconame_panam_stand, source_locomotion_file)
         anim_copy(path_to_anim, panam_folder_crouch +
-                  loc_path_crouch, loconame_genfem_crouch)
+                  loc_path_crouch, loconame_genfem_crouch, source_locomotion_file)
         total_conversions += 1
 
 
