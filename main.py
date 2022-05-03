@@ -4,8 +4,15 @@ import os
 import glob
 import shutil
 import traceback
+import time
 
-dir_wkitCLI = os.getcwd() + "\\wkitCLI\\WolvenKit.CLI.exe "
+# Stats
+total_conversions = 0
+start_time = time.time()
+
+# Important Variables
+# dir_wkitCLI = os.getcwd() + "\\wkitCLI\\WolvenKit.CLI.exe "   # CURRENTLY DISABLED BECAUSE WKIT IS BUGGED
+dir_wkitCLI = os.getcwd() + "\\cp77tools\\CP77Tools.exe "
 dir_input_packed = os.getcwd() + "\input_packed"
 dir_output_packed = os.getcwd() + "\output_packed"
 dir_output_unbundled = os.getcwd() + "\output_unbundled"
@@ -38,12 +45,11 @@ def packer():
         folder_path = os.getcwd() + "\\" + "tempfiles\\" + folder
         wkitCommand = dir_wkitCLI + cmd_pack + '"' + folder_path + '"'
 
-        print(wkitCommand)
-
         try:
             p = subprocess.Popen(
                 ["powershell.exe", wkitCommand], stdout=sys.stdout)
             p.communicate()
+
         except:
             print("Packing Error: WolvenKit failed to pack " + folder)
 
@@ -55,7 +61,6 @@ def packer():
     except:
         print("Packing Error: Error during transfer of files")
 
-
     # Delete archives from tempfiles
     archives = glob.glob(dir_tempfiles + "/*.archive")
     try:
@@ -66,6 +71,11 @@ def packer():
 
 
 def npc_folder_builder(panam_folder):
+    # First check if the folder already exists. If it does, delete it so we can start fresh
+    if os.path.isdir(panam_folder):
+        print("Note: Folder already exists (perhaps from a previous session). Overwriting contents...")
+        shutil.rmtree(panam_folder, ignore_errors=True)
+
     try:
         src_path = os.getcwd() + "\\structures\\npc_panam"
         shutil.copytree(src_path, panam_folder, dirs_exist_ok=True)
@@ -88,7 +98,7 @@ def anim_copy(src_path, panam_folder, locomotion_type):
 
 
 def locomotion_convertor():
-    folders = []
+    global total_conversions
     for folder in os.listdir(dir_output_unbundled):
         # Extract locomotion
         path_to_anim = dir_output_unbundled + "\\" + folder + \
@@ -107,9 +117,11 @@ def locomotion_convertor():
                   loc_path_stand, loconame_panam_stand)
         anim_copy(path_to_anim, panam_folder_crouch +
                   loc_path_crouch, loconame_genfem_crouch)
+        total_conversions += 1
+
 
 # Delete contents of output_unbundle and tempfiles. Optionally delete output_packed as well.
-def cleanup(delete_output_packed=False):
+def reset(delete_output_packed=False):
     # Delete tempfile
     shutil.rmtree(dir_tempfiles, ignore_errors=True)
     # Make new blank tempfile folder
@@ -122,7 +134,6 @@ def cleanup(delete_output_packed=False):
     if not os.path.isdir(dir_output_unbundled):
         os.makedirs(dir_output_unbundled)
 
-
     # Delete contents of output_packed
     if delete_output_packed:
         shutil.rmtree(dir_output_packed, ignore_errors=True)
@@ -131,15 +142,19 @@ def cleanup(delete_output_packed=False):
             os.makedirs(dir_output_packed)
     print("Cleanup complete")
 
-# Main
-print("Launching Cybertools by @wolv2077")
 
+# Main
+print("\nLaunching Cybertools by @wolv2077")
+
+reset(True)
 unbundler()
 locomotion_convertor()
 packer()
 
-# cleanup(True)
+# reset(True)
 
-
-
+# Render statistics
+time_taken = round(time.time() - start_time, 3)
+print("\n\nA total of", total_conversions,
+      "conversions were completed in", time_taken, "seconds.")
 print("End of program execution. See output_packed for final archives.")
