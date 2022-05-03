@@ -11,8 +11,8 @@ total_conversions = 0
 start_time = time.time()
 
 # Important Variables
-# dir_wkitCLI = os.getcwd() + "\\wkitCLI\\WolvenKit.CLI.exe "   # CURRENTLY DISABLED BECAUSE WKIT IS BUGGED
-dir_wkitCLI = os.getcwd() + "\\cp77tools\\CP77Tools.exe "
+dir_wkitCLI = os.getcwd() + "\\wkitCLI\\WolvenKit.CLI.exe "   
+# dir_wkitCLI = os.getcwd() + "\\cp77tools\\CP77Tools.exe "     # Backup - slower but most reliable
 dir_input_packed = os.getcwd() + "\input_packed"
 dir_output_packed = os.getcwd() + "\output_packed"
 dir_output_unbundled = os.getcwd() + "\output_unbundled"
@@ -43,11 +43,11 @@ def unbundler():
 def packer():
     for folder in os.listdir(dir_tempfiles):
         folder_path = os.getcwd() + "\\" + "tempfiles\\" + folder
-        wkitCommand = dir_wkitCLI + cmd_pack + '"' + folder_path + '"'
+        wkit_command = dir_wkitCLI + cmd_pack + '"' + folder_path + '"'
 
         try:
             p = subprocess.Popen(
-                ["powershell.exe", wkitCommand], stdout=sys.stdout)
+                ["powershell.exe", wkit_command], stdout=sys.stdout)
             p.communicate()
 
         except:
