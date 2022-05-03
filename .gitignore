@@ -1,0 +1,5 @@
+input_packed/
+input_unbundled/
+output_packed/
+output_unbundled/
+tempfiles/
